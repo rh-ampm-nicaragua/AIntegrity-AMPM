@@ -5,6 +5,8 @@ import { CheckCircle, Clock } from 'lucide-react';
 export default function Complete() {
   const [searchParams] = useSearchParams();
   const pending = searchParams.get('pending') === '1';
+  // Llegó por el link del bot de WhatsApp (token BOT-…): el resultado y el siguiente paso le llegan por ahí.
+  const porWhatsApp = searchParams.get('canal') === 'wa';
 
   return (
     <div className="assessment-container">
@@ -35,10 +37,12 @@ export default function Complete() {
           ) : (
             <>
               <p className="text-lg text-muted-foreground leading-relaxed mb-2">
-                Sus respuestas han sido enviadas correctamente.
+                Sus respuestas de esta prueba fueron enviadas correctamente.
               </p>
               <p className="text-muted-foreground">
-                Recibirá información sobre los siguientes pasos del proceso por parte del equipo de Recursos Humanos.
+                {porWhatsApp
+                  ? 'Esta prueba es solo una parte del proceso. En unos minutos le llega por WhatsApp el resultado y, si corresponde, el siguiente paso.'
+                  : 'Esta prueba es solo una parte del proceso. Recursos Humanos le contactará para indicarle el siguiente paso.'}
               </p>
             </>
           )}

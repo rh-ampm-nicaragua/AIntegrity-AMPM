@@ -41,6 +41,17 @@ function getRemainingSeconds(questionIndex: number): number {
   return QUESTION_TIME_LIMIT;
 }
 
+// A dónde va el candidato al terminar (16-nov-2026). `canal=wa` = llegó por el link del bot de WhatsApp
+// (token BOT-…): la pantalla final le dice que el resultado y el siguiente paso le llegan por WhatsApp.
+// Antes todos veían "Recibirá información… por parte de RRHH" y creían haber terminado TODO el proceso.
+function rutaFinal(token: string | undefined, pendiente = false): string {
+  const p = new URLSearchParams();
+  if (pendiente) p.set('pending', '1');
+  if ((token ?? '').trim().toUpperCase().startsWith('BOT-')) p.set('canal', 'wa');
+  const q = p.toString();
+  return q ? `/complete?${q}` : '/complete';
+}
+
 export default function Question() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -199,8 +210,9 @@ export default function Question() {
 
       // Si este sid ya fue confirmado por el server en una corrida previa, no reenviar.
       if (isAlreadySubmitted(submissionId)) {
+        const destinoYaEnviado = rutaFinal(state.token);
         completeAssessment();
-        navigate('/complete', { replace: true });
+        navigate(destinoYaEnviado, { replace: true });
         return;
       }
 
@@ -250,8 +262,9 @@ export default function Question() {
         } catch { /* ignorar */ }
       }
 
+      const destino = rutaFinal(state.token, !ok);
       completeAssessment();
-      navigate(ok ? '/complete' : '/complete?pending=1', { replace: true });
+      navigate(destino, { replace: true });
     } else {
       nextQuestion();
     }
@@ -266,7 +279,7 @@ export default function Question() {
     void goToNext(updated);
   };
 
-  if (!currentQuestion) { navigate('/complete'); return null; }
+  if (!currentQuestion) { navigate(rutaFinal(state.token)); return null; }
 
   return (
     <div className="assessment-container">
